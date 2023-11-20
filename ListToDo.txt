@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .todo-container {
+            width: 300px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .task-text {
+            flex-grow: 1;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .filter-buttons {
+            margin-top: 10px;
+        }
+    </style>
+    <title>To-Do List</title>
+</head>
+<body>
+
+    <div class="todo-container">
+        <h2>How a List Doing </h2>
+        <input type="text" id="newTask" placeholder="New task">
+        <button onclick="addTask()">Add</button>
+
+        <ul id="taskList"></ul>
+
+        <div class="filter-buttons">
+            <button onclick="filterTasks('all')">All</button> <br>
+            <button onclick="filterTasks('active')">Active</button><br>
+            <button onclick="filterTasks('completed')">Completed</button><br>
+            <button onclick="clearCompleted()">Clear Completed</button>
+        </div>
+    </div>
+
+    <script>
+        const taskList = document.getElementById('taskList');
+        const newTaskInput = document.getElementById('newTask');
+
+        // Retrieve tasks from local storage or initialize an empty array
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        // Display tasks on page load
+        displayTasks();
+
+        function addTask() {
+            const taskText = newTaskInput.value.trim();
+
+            if (taskText !== '') {
+                // Create a new task object
+                const newTask = {
+                    id: Date.now(),
+                    text: taskText,
+                    completed: false,
+                };
+
+                // Add the new task to the tasks array
+                tasks.push(newTask);
+
+                // Save tasks to local storage
+                saveTasks();
+
+                // Clear the input field
+                newTaskInput.value = '';
+
+                // Display updated tasks
+                displayTasks();
+            }
+        }
+
+        function displayTasks() {
+            // Clear the existing task list
+            taskList.innerHTML = '';
+
+            // Display tasks based on the filter status
+            const filteredTasks = filterTasks('all');
+
+            // Render each task
+            filteredTasks.forEach(task => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <span class="task-text ${task.completed ? 'completed' : ''}">${task.text}</span>
+                    <button onclick="toggleTaskStatus(${task.id})">Done</button>
+                    <button onclick="deleteTask(${task.id})">Delete</button>
+                `;
+                taskList.appendChild(listItem);
+            });
+        }
+
+        function toggleTaskStatus(taskId) {
+            // Find the task by ID
+            const taskIndex = tasks.findIndex(task => task.id === taskId);
+
+            if (taskIndex !== -1) {
+                // Toggle the completed status
+                tasks[taskIndex].completed = !tasks[taskIndex].completed;
+
+                // Save tasks to local storage
+                saveTasks();
+
+                // Display updated tasks
+                displayTasks();
+            }
+        }
+
+        function deleteTask(taskId) {
+            // Filter out the task with the given ID
+            tasks = tasks.filter(task => task.id !== taskId);
+
+            // Save tasks to local storage
+            saveTasks();
+
+            // Display updated tasks
+            displayTasks();
+        }
+
+        function filterTasks(status) {
+            switch (status) {
+                case 'all':
+                    return tasks;
+                case 'active':
+                    return tasks.filter(task => !task.completed);
+                case 'completed':
+                    return tasks.filter(task => task.completed);
+                default:
+                    return tasks;
+            }
+        }
+
+        function clearCompleted() {
+            // Filter out completed tasks
+            tasks = tasks.filter(task => !task.completed);
+
+            // Save tasks to local storage
+            saveTasks();
+
+            // Display updated tasks
+            displayTasks();
+        }
+
+        function saveTasks() {
+            // Save tasks to local storage
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+    </script>
+
+</body>
+</html>
